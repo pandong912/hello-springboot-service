@@ -1,0 +1,27 @@
+<configuration>
+    <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp/>
+                <logLevel/>
+                <loggerName/>
+                <threadName/>
+                <message/>
+                <mdc/>
+                <stackTrace/>
+                <pattern>
+                    <pattern>
+                        {
+                          "service": "${SERVICE_NAME:-hello-grpc}",
+                          "env": "${APP_ENV:-dev}"
+                        }
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+    </appender>
+
+    <root level="${LOG_LEVEL:-INFO}">
+        <appender-ref ref="JSON_CONSOLE"/>
+    </root>
+</configuration>

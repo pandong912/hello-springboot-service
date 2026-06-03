@@ -26,6 +26,7 @@
         <protobuf.version>3.25.5</protobuf.version>
         <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
         <spring-boot.version>3.3.6</spring-boot.version>
+        <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
