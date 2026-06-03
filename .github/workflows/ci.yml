@@ -25,7 +25,7 @@ jobs:
     name: Test and build image
     runs-on: ubuntu-latest
     outputs:
-      image-tag: ${{ steps.meta.outputs.image-tag }}
+      image-suffix: ${{ steps.meta.outputs.image-suffix }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -42,7 +42,7 @@ jobs:
 
       - name: Set image tag
         id: meta
-        run: echo "image-tag=master-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+        run: echo "image-suffix=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
       - name: Install Podman
         run: |
@@ -50,7 +50,10 @@ jobs:
           sudo apt-get install -y podman
 
       - name: Container build check
-        run: podman build -t "${ECR_REPOSITORY}:${{ steps.meta.outputs.image-tag }}" .
+        run: |
+          podman build -f hello-web/Dockerfile -t "${ECR_REPOSITORY}:web-${{ steps.meta.outputs.image-suffix }}" .
+          podman build -f hello-grpc-provider/Dockerfile -t "${ECR_REPOSITORY}:grpc-${{ steps.meta.outputs.image-suffix }}" .
+          podman build -f hello-dubbo-provider/Dockerfile -t "${ECR_REPOSITORY}:dubbo-${{ steps.meta.outputs.image-suffix }}" .
 
   deploy-dev:
     name: Push image and update GitOps
@@ -90,13 +93,17 @@ jobs:
       - name: Build and push image
         env:
           ECR_REGISTRY: ${{ steps.ecr.outputs.registry }}
-          IMAGE_TAG: ${{ needs.build.outputs.image-tag }}
+          IMAGE_SUFFIX: ${{ needs.build.outputs.image-suffix }}
         run: |
-          IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
-          podman build -t "${IMAGE_URI}" .
-          podman push "${IMAGE_URI}"
+          IMAGE_REPOSITORY="${ECR_REGISTRY}/${ECR_REPOSITORY}"
+          podman build -f hello-web/Dockerfile -t "${IMAGE_REPOSITORY}:web-${IMAGE_SUFFIX}" .
+          podman build -f hello-grpc-provider/Dockerfile -t "${IMAGE_REPOSITORY}:grpc-${IMAGE_SUFFIX}" .
+          podman build -f hello-dubbo-provider/Dockerfile -t "${IMAGE_REPOSITORY}:dubbo-${IMAGE_SUFFIX}" .
+          podman push "${IMAGE_REPOSITORY}:web-${IMAGE_SUFFIX}"
+          podman push "${IMAGE_REPOSITORY}:grpc-${IMAGE_SUFFIX}"
+          podman push "${IMAGE_REPOSITORY}:dubbo-${IMAGE_SUFFIX}"
+          echo "IMAGE_SUFFIX=${IMAGE_SUFFIX}" >> "$GITHUB_ENV"
           echo "IMAGE_REPOSITORY=${ECR_REGISTRY}/${ECR_REPOSITORY}" >> "$GITHUB_ENV"
-          echo "IMAGE_TAG=${IMAGE_TAG}" >> "$GITHUB_ENV"
 
       - name: Checkout GitOps repo
         uses: actions/checkout@v4
@@ -115,29 +122,38 @@ jobs:
 
           path = Path("${{ env.GITOPS_VALUES_FILE }}")
           image_repository = os.environ["IMAGE_REPOSITORY"]
-          image_tag = os.environ["IMAGE_TAG"]
+          image_suffix = os.environ["IMAGE_SUFFIX"]
 
           text = path.read_text()
+          replacements = {
+              "web": f"web-{image_suffix}",
+              "grpc": f"grpc-{image_suffix}",
+              "dubbo": f"dubbo-{image_suffix}",
+          }
           lines = text.splitlines()
-          in_image = False
           output = []
+          component = None
+          in_image = False
 
           for line in lines:
               stripped = line.strip()
-              if stripped == "image:":
+              if line.startswith("  ") and not line.startswith("    ") and stripped.endswith(":"):
+                  maybe_component = stripped[:-1]
+                  if maybe_component in replacements:
+                      component = maybe_component
+                      in_image = False
+              if component and line.startswith("    image:"):
                   in_image = True
-                  output.append(line)
-                  continue
-              if in_image and line and not line.startswith(" "):
+              elif in_image and line.startswith("    ") and not line.startswith("      "):
                   in_image = False
-              if in_image and stripped.startswith("repository:"):
-                  output.append(f"  repository: {image_repository}")
-              elif in_image and stripped.startswith("tag:"):
-                  output.append(f"  tag: {image_tag}")
+              if component and in_image and stripped.startswith("repository:"):
+                  output.append(f"      repository: {image_repository}")
+              elif component and in_image and stripped.startswith("tag:"):
+                  output.append(f"      tag: {replacements[component]}")
               else:
                   output.append(line)
 
-          path.write_text("\n".join(output) + "\n")
+          path.write_text("\\n".join(output) + "\\n")
           PY
 
       - name: Commit GitOps update
@@ -145,7 +161,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITOPS_REPO_TOKEN }}
         run: |
-          BRANCH="update-hello-springboot-${IMAGE_TAG}"
+          BRANCH="update-hello-springboot-${IMAGE_SUFFIX}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b "${BRANCH}"
@@ -153,13 +169,13 @@ jobs:
           if git diff --cached --quiet; then
             echo "No GitOps changes to commit."
           else
-            git commit -m "Update hello-springboot image to ${IMAGE_TAG}"
+            git commit -m "Update hello service images to ${IMAGE_SUFFIX}"
             git push --force-with-lease origin "${BRANCH}"
             gh pr create \
               --repo "${GITOPS_REPO}" \
               --base "${GITOPS_BRANCH}" \
               --head "${BRANCH}" \
-              --title "Update hello-springboot image to ${IMAGE_TAG}" \
-              --body "Updates the dev GitOps image tag to ${IMAGE_TAG}." \
+              --title "Update hello service images to ${IMAGE_SUFFIX}" \
+              --body "Updates dev GitOps image tags for web, gRPC, and Dubbo services to ${IMAGE_SUFFIX}." \
               || gh pr view "${BRANCH}" --repo "${GITOPS_REPO}"
           fi
