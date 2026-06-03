@@ -16,12 +16,37 @@ Expected response:
 hello from spring boot on eks
 ```
 
+The service also exposes a gRPC endpoint on port `9090`.
+
+If `grpcurl` is installed, test it locally with:
+
+```bash
+grpcurl -plaintext \
+  -d '{"name":"EKS"}' \
+  localhost:9090 \
+  hello.v1.HelloRpc/SayHello
+```
+
+Expected response:
+
+```json
+{
+  "message": "hello EKS from grpc on eks"
+}
+```
+
 ## Container Build with Podman
 
 ```bash
 mvn clean package
 podman build -t hello-springboot:local .
 podman run --rm -p 8080:8080 hello-springboot:local
+```
+
+For gRPC container testing:
+
+```bash
+podman run --rm -p 8080:8080 -p 9090:9090 hello-springboot:local
 ```
 
 ## GitHub Actions
