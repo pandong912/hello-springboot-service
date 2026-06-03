@@ -1,6 +1,11 @@
 server:
   port: 8080
 
+grpc:
+  server:
+    port: 9090
+    reflection-service-enabled: true
+
 management:
   endpoint:
     health:
