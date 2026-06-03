@@ -1,0 +1,27 @@
+server:
+  port: 8080
+
+hello:
+  grpc-target: ${HELLO_GRPC_TARGET:hello-grpc.hello.svc.cluster.local:9090}
+  dubbo-url: ${HELLO_DUBBO_URL:tri://hello-dubbo.hello.svc.cluster.local:50051}
+
+dubbo:
+  application:
+    name: hello-web
+    logger: slf4j
+    qos-enable: false
+  registry:
+    address: N/A
+  consumer:
+    check: false
+    timeout: 3000
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
