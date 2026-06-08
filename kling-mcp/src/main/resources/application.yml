@@ -1,0 +1,56 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: kling-mcp
+  ai:
+    mcp:
+      server:
+        name: kling-mcp
+        version: 0.1.0-SNAPSHOT
+        type: SYNC
+        protocol: STREAMABLE
+        instructions: "Kling MCP server. Currently exposes a tool for retrieving the current date."
+        capabilities:
+          tool: true
+          resource: false
+          prompt: false
+          completion: false
+        streamable-http:
+          mcp-endpoint: ${KLING_MCP_ENDPOINT:/mcp}
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+kling:
+  mcp:
+    public-base-url: ${KLING_MCP_PUBLIC_BASE_URL:http://localhost:8081}
+    endpoint: ${KLING_MCP_ENDPOINT:/mcp}
+    auth:
+      issuer-uri: ${LOGTO_ISSUER_URI:https://107k1z.logto.app/oidc}
+      jwk-set-uri: ${LOGTO_JWK_SET_URI:}
+      audience: ${LOGTO_AUDIENCE:http://localhost:8081/mcp}
+      required-scope: ${KLING_MCP_REQUIRED_SCOPE:kling:invoke}
+      trusted-issuers:
+        - issuer-uri: ${KLING_MCP_GATEWAY_ISSUER:http://localhost:8082}
+          jwk-set-uri: ${KLING_MCP_GATEWAY_JWK_SET_URI:http://localhost:8082/.well-known/jwks.json}
+        - issuer-uri: ${LOGTO_ISSUER_URI:https://107k1z.logto.app/oidc}
+          jwk-set-uri: ${LOGTO_JWK_SET_URI:}
+    api:
+      base-url: ${KLING_API_BASE_URL:http://localhost:8089}
+      api-key: ${KLING_API_KEY:}
+      auth-header: ${KLING_API_AUTH_HEADER:Authorization}
+      create-video-path: ${KLING_API_CREATE_VIDEO_PATH:/v1/videos/generations}
+      cancel-video-path: ${KLING_API_CANCEL_VIDEO_PATH:/v1/videos/generations/{providerTaskId}/cancel}
+      callback-path: ${KLING_API_CALLBACK_PATH:/api/kling/callbacks/video-generation}
+      callback-secret: ${KLING_API_CALLBACK_SECRET:dev-callback-secret}
+      callback-signature-header: ${KLING_API_CALLBACK_SIGNATURE_HEADER:X-Kling-Signature}
+      callback-timestamp-header: ${KLING_API_CALLBACK_TIMESTAMP_HEADER:X-Kling-Timestamp}

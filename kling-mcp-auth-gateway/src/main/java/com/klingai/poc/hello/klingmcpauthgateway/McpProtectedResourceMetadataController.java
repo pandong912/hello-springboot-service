@@ -1,0 +1,38 @@
+package com.klingai.poc.hello.klingmcpauthgateway;
+
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class McpProtectedResourceMetadataController {
+
+    private final GatewayProperties properties;
+
+    public McpProtectedResourceMetadataController(GatewayProperties properties) {
+        this.properties = properties;
+    }
+
+    @GetMapping({
+            "/.well-known/oauth-protected-resource",
+            "/.well-known/oauth-protected-resource/**"
+    })
+    ProtectedResourceMetadata protectedResourceMetadata() {
+        return new ProtectedResourceMetadata(
+                properties.mcp().resource(),
+                List.of(properties.publicBaseUrl()),
+                properties.supportedScopes(),
+                List.of("header"),
+                properties.mcp().endpoint());
+    }
+
+    record ProtectedResourceMetadata(
+            String resource,
+            @JsonProperty("authorization_servers") List<String> authorizationServers,
+            @JsonProperty("scopes_supported") List<String> scopesSupported,
+            @JsonProperty("bearer_methods_supported") List<String> bearerMethodsSupported,
+            @JsonProperty("resource_documentation") String resourceDocumentation) {
+    }
+}

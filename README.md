@@ -8,6 +8,14 @@ Modules:
 - `hello-web`: REST Web service and consumer of gRPC/Dubbo providers.
 - `hello-grpc-provider`: gRPC provider on port `9090`.
 - `hello-dubbo-provider`: Dubbo 3 Triple provider on port `50051`.
+- `kling-mcp`: Spring AI MCP server protected by Logto OAuth.
+- `kling-mcp-auth-gateway`: OAuth compatibility gateway for public MCP agents.
+
+MCP public-agent documentation:
+
+- `kling-mcp/README.md`: resource server setup, Logto static OAuth, trusted issuer migration.
+- `kling-mcp-auth-gateway/README.md`: OAuth Gateway endpoints, DCR, token contract, Logto upstream plan.
+- `docs/kling-mcp-public-agent-integration.md`: Cursor, MCP Inspector, Claude, `mcp-remote`, and custom-agent integration matrix.
 
 ## Local Run
 

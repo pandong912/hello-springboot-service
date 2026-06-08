@@ -1,0 +1,59 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: kling-mcp-auth-gateway
+  security:
+    oauth2:
+      client:
+        registration:
+          logto:
+            provider: logto
+            client-id: ${LOGTO_GATEWAY_CLIENT_ID:nwvbadmfyuuz8qdibeigx}
+            client-secret: ${LOGTO_GATEWAY_CLIENT_SECRET:vJ5RiYDaj22zEKKFbARQNKBpuhs8zS1n}
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope:
+              - openid
+              - profile
+              - email
+              - roles
+              - urn:logto:scope:organizations
+              - urn:logto:scope:organization_roles
+        provider:
+          logto:
+            issuer-uri: ${LOGTO_ISSUER_URI:https://107k1z.logto.app/oidc}
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+kling:
+  mcp:
+    auth-gateway:
+      issuer: ${KLING_MCP_GATEWAY_ISSUER:http://localhost:8082}
+      mcp:
+        resource: ${KLING_MCP_RESOURCE:http://localhost:8081/mcp}
+        endpoint: ${KLING_MCP_ENDPOINT:http://localhost:8081/mcp}
+        scopes:
+          - ${KLING_MCP_REQUIRED_SCOPE:kling:invoke}
+      registration:
+        enabled: ${KLING_MCP_GATEWAY_DCR_ENABLED:true}
+        allow-public-clients: ${KLING_MCP_GATEWAY_DCR_ALLOW_PUBLIC_CLIENTS:true}
+        redirect-uri-allow-list:
+          - cursor://anysphere.cursor-mcp/oauth/callback
+          - https://www.cursor.com/agents/mcp/oauth/callback
+          - http://localhost:8787/callback
+          - http://127.0.0.1:6274/oauth/callback
+          - http://localhost:6274/oauth/callback
+      logto:
+        issuer-uri: ${LOGTO_ISSUER_URI:https://107k1z.logto.app/oidc}
+        client-id: ${LOGTO_GATEWAY_CLIENT_ID:nwvbadmfyuuz8qdibeigx}
+        client-secret: ${LOGTO_GATEWAY_CLIENT_SECRET:vJ5RiYDaj22zEKKFbARQNKBpuhs8zS1n}

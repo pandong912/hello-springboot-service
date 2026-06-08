@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "kling-mcp-gateway-1": {
+      "url": "http://localhost:8081/mcp"
+    }
+  }
+}
