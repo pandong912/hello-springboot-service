@@ -1,15 +1,11 @@
 package com.klingai.poc.hello.klingmcp.config;
 
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.servlet.http.HttpServletResponse;
-
-import com.nimbusds.jose.JOSEObjectType;
-import com.nimbusds.jose.proc.DefaultJOSEObjectTypeVerifier;
-import com.nimbusds.jose.proc.JOSEObjectTypeVerifier;
-import com.nimbusds.jose.proc.SecurityContext;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,6 +26,11 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.util.StringUtils;
 
+import com.nimbusds.jose.JOSEObjectType;
+import com.nimbusds.jose.proc.DefaultJOSEObjectTypeVerifier;
+import com.nimbusds.jose.proc.JOSEObjectTypeVerifier;
+import com.nimbusds.jose.proc.SecurityContext;
+
 @Configuration
 @EnableConfigurationProperties(KlingMcpProperties.class)
 @Slf4j
@@ -47,7 +48,8 @@ public class SecurityConfig {
                                 "/actuator/health/**",
                                 "/.well-known/oauth-protected-resource",
                                 "/.well-known/oauth-protected-resource/**",
-                                properties.api().callbackPath())
+                                properties.api().callbackPath(),
+                                properties.api().imageCallbackPath())
                         .permitAll()
                         .requestMatchers(properties.endpoint(), properties.endpoint() + "/**").hasAuthority(requiredAuthority)
                         .anyRequest().authenticated())

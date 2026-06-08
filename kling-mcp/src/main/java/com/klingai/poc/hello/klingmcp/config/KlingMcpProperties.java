@@ -37,6 +37,10 @@ public record KlingMcpProperties(
         return trimTrailingSlash(publicBaseUrl) + normalizePath(api().callbackPath());
     }
 
+    public String imageCallbackUri() {
+        return trimTrailingSlash(publicBaseUrl) + normalizePath(api().imageCallbackPath());
+    }
+
     @Override
     public Api api() {
         if (api == null) {
@@ -89,25 +93,24 @@ public record KlingMcpProperties(
 
     public record Api(
             String baseUrl,
-            String apiKey,
-            String authHeader,
+            String accessKey,
+            String secretKey,
             String createVideoPath,
             String cancelVideoPath,
             String callbackPath,
+            String createImagePath,
+            String cancelImagePath,
+            String imageCallbackPath,
             String callbackSecret,
             String callbackSignatureHeader,
             String callbackTimestampHeader) {
 
         static Api defaults() {
-            return new Api(null, null, null, null, null, null, null, null, null);
+            return new Api(null, null, null, null, null, null, null, null, null, null, null, null);
         }
 
         public String resolvedBaseUrl() {
             return StringUtils.hasText(baseUrl) ? trimTrailingSlash(baseUrl) : "http://localhost:8089";
-        }
-
-        public String resolvedAuthHeader() {
-            return StringUtils.hasText(authHeader) ? authHeader : "Authorization";
         }
 
         public String resolvedCreateVideoPath() {
@@ -122,6 +125,20 @@ public record KlingMcpProperties(
 
         public String callbackPath() {
             return StringUtils.hasText(callbackPath) ? normalizePath(callbackPath) : "/api/kling/callbacks/video-generation";
+        }
+
+        public String resolvedCreateImagePath() {
+            return StringUtils.hasText(createImagePath) ? normalizePath(createImagePath) : "/v1/images/generations";
+        }
+
+        public String resolvedCancelImagePath() {
+            return StringUtils.hasText(cancelImagePath)
+                    ? normalizePath(cancelImagePath)
+                    : "/v1/images/generations/{providerTaskId}/cancel";
+        }
+
+        public String imageCallbackPath() {
+            return StringUtils.hasText(imageCallbackPath) ? normalizePath(imageCallbackPath) : "/api/kling/callbacks/image-generation";
         }
 
         public String resolvedCallbackSignatureHeader() {

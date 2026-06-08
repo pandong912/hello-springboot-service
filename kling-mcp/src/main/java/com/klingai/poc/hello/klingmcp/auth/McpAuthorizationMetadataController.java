@@ -1,13 +1,14 @@
 package com.klingai.poc.hello.klingmcp.auth;
 
-import com.klingai.poc.hello.klingmcp.config.KlingMcpProperties;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.klingai.poc.hello.klingmcp.config.KlingMcpProperties;
 
 @RestController
 @RequiredArgsConstructor

@@ -4,6 +4,11 @@ server:
 spring:
   application:
     name: kling-mcp
+  datasource:
+    url: ${KLING_MCP_DATASOURCE_URL:jdbc:postgresql://localhost:5432/kling_mcp}
+    username: ${KLING_MCP_DATASOURCE_USERNAME:kling_mcp}
+    password: ${KLING_MCP_DATASOURCE_PASSWORD:kling_mcp}
+    driver-class-name: org.postgresql.Driver
   ai:
     mcp:
       server:
@@ -34,6 +39,8 @@ kling:
   mcp:
     public-base-url: ${KLING_MCP_PUBLIC_BASE_URL:http://localhost:8081}
     endpoint: ${KLING_MCP_ENDPOINT:/mcp}
+    repository:
+      type: ${KLING_MCP_REPOSITORY_TYPE:postgres}
     auth:
       issuer-uri: ${LOGTO_ISSUER_URI:https://107k1z.logto.app/oidc}
       jwk-set-uri: ${LOGTO_JWK_SET_URI:}
@@ -46,11 +53,18 @@ kling:
           jwk-set-uri: ${LOGTO_JWK_SET_URI:}
     api:
       base-url: ${KLING_API_BASE_URL:http://localhost:8089}
-      api-key: ${KLING_API_KEY:}
-      auth-header: ${KLING_API_AUTH_HEADER:Authorization}
+      access-key: ${KLING_API_ACCESS_KEY:APbCkayK4hyMKgn4dkAkDrPYTh3ENPra}
+      secret-key: ${KLING_API_SECRET_KEY:mbkYH8eYMfPhmN3KHyeyFdetDCaRaEy3}
       create-video-path: ${KLING_API_CREATE_VIDEO_PATH:/v1/videos/generations}
       cancel-video-path: ${KLING_API_CANCEL_VIDEO_PATH:/v1/videos/generations/{providerTaskId}/cancel}
       callback-path: ${KLING_API_CALLBACK_PATH:/api/kling/callbacks/video-generation}
+      create-image-path: ${KLING_API_CREATE_IMAGE_PATH:/v1/images/generations}
+      cancel-image-path: ${KLING_API_CANCEL_IMAGE_PATH:/v1/images/generations/{providerTaskId}/cancel}
+      image-callback-path: ${KLING_API_IMAGE_CALLBACK_PATH:/api/kling/callbacks/image-generation}
       callback-secret: ${KLING_API_CALLBACK_SECRET:dev-callback-secret}
       callback-signature-header: ${KLING_API_CALLBACK_SIGNATURE_HEADER:X-Kling-Signature}
       callback-timestamp-header: ${KLING_API_CALLBACK_TIMESTAMP_HEADER:X-Kling-Timestamp}
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true

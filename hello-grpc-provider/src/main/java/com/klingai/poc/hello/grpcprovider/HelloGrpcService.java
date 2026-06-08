@@ -1,10 +1,11 @@
 package com.klingai.poc.hello.grpcprovider;
 
+import io.grpc.stub.StreamObserver;
+import net.devh.boot.grpc.server.service.GrpcService;
+
 import com.klingai.poc.hello.grpc.HelloRpcGrpc;
 import com.klingai.poc.hello.grpc.SayHelloRequest;
 import com.klingai.poc.hello.grpc.SayHelloResponse;
-import io.grpc.stub.StreamObserver;
-import net.devh.boot.grpc.server.service.GrpcService;
 
 @GrpcService
 public class HelloGrpcService extends HelloRpcGrpc.HelloRpcImplBase {

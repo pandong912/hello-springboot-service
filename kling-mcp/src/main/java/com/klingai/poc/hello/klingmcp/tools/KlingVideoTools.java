@@ -1,13 +1,14 @@
 package com.klingai.poc.hello.klingmcp.tools;
 
-import com.klingai.poc.hello.klingmcp.video.model.VideoContracts;
-import com.klingai.poc.hello.klingmcp.video.service.KlingVideoService;
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.ai.tool.annotation.Tool;
+import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import org.springframework.ai.tool.annotation.Tool;
-import org.springframework.stereotype.Service;
+import com.klingai.poc.hello.klingmcp.generation.model.VideoContracts;
+import com.klingai.poc.hello.klingmcp.generation.service.KlingVideoService;
 
 @Service
 @RequiredArgsConstructor

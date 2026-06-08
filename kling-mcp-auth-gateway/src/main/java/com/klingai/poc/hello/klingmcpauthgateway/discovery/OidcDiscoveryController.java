@@ -1,12 +1,14 @@
 package com.klingai.poc.hello.klingmcpauthgateway.discovery;
 
+import lombok.RequiredArgsConstructor;
+
 import java.util.List;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.klingai.poc.hello.klingmcpauthgateway.config.GatewayProperties;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor

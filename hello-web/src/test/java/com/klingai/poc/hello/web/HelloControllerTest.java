@@ -1,9 +1,11 @@
 package com.klingai.poc.hello.web;
 
-import com.klingai.poc.hello.dubbo.HelloDubboService;
-import com.klingai.poc.hello.grpc.HelloRpcGrpc;
-import com.klingai.poc.hello.grpc.SayHelloRequest;
-import com.klingai.poc.hello.grpc.SayHelloResponse;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,11 +13,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.klingai.poc.hello.dubbo.HelloDubboService;
+import com.klingai.poc.hello.grpc.HelloRpcGrpc;
+import com.klingai.poc.hello.grpc.SayHelloRequest;
+import com.klingai.poc.hello.grpc.SayHelloResponse;
 
 @WebMvcTest(HelloController.class)
 class HelloControllerTest {
