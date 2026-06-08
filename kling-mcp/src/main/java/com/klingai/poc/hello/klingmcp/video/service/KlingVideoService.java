@@ -1,10 +1,19 @@
-package com.klingai.poc.hello.klingmcp;
+package com.klingai.poc.hello.klingmcp.video.service;
+
+import com.klingai.poc.hello.klingmcp.auth.OwnerIdentity;
+import com.klingai.poc.hello.klingmcp.config.KlingMcpProperties;
+import com.klingai.poc.hello.klingmcp.video.api.KlingApiClient;
+import com.klingai.poc.hello.klingmcp.video.api.KlingApiException;
+import com.klingai.poc.hello.klingmcp.video.api.KlingCreateVideoResult;
+import com.klingai.poc.hello.klingmcp.video.model.VideoContracts;
+import com.klingai.poc.hello.klingmcp.video.model.VideoTask;
+import com.klingai.poc.hello.klingmcp.video.model.VideoTaskStatus;
+import com.klingai.poc.hello.klingmcp.video.repository.VideoTaskRepository;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Instant;
 import java.util.HexFormat;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -12,6 +21,7 @@ import java.util.UUID;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 @Service
+@RequiredArgsConstructor
 public class KlingVideoService {
 
     private static final int DEFAULT_WAIT_SECONDS = 30;
@@ -31,17 +42,6 @@ public class KlingVideoService {
     private final KlingApiClient klingApiClient;
     private final KlingMcpProperties properties;
     private final ObjectMapper objectMapper;
-
-    public KlingVideoService(
-            VideoTaskRepository repository,
-            KlingApiClient klingApiClient,
-            KlingMcpProperties properties,
-            ObjectMapper objectMapper) {
-        this.repository = repository;
-        this.klingApiClient = klingApiClient;
-        this.properties = properties;
-        this.objectMapper = objectMapper;
-    }
 
     public VideoContracts.VideoTaskResponse createVideo(VideoContracts.CreateVideoRequest request) {
         if (request == null || !StringUtils.hasText(request.prompt())) {
@@ -76,7 +76,7 @@ public class KlingVideoService {
             return VideoContracts.VideoTaskResponse.fromTask(task, nextActionFor(task));
         }
         catch (KlingApiException ex) {
-            task = task.withFailure(new VideoContracts.VideoTaskError(ex.code(), ex.getMessage(), ex.retryable()), Instant.now());
+            task = task.withFailure(new VideoContracts.VideoTaskError(ex.getCode(), ex.getMessage(), ex.isRetryable()), Instant.now());
             repository.save(task);
             return VideoContracts.VideoTaskResponse.fromTask(task, "Fix the request or retry after the upstream API recovers.");
         }
@@ -169,7 +169,7 @@ public class KlingVideoService {
                     task.updatedAt(),
                     task.progress(),
                     task.result(),
-                    new VideoContracts.VideoTaskError(ex.code(), ex.getMessage(), ex.retryable()),
+                    new VideoContracts.VideoTaskError(ex.getCode(), ex.getMessage(), ex.isRetryable()),
                     "Retry cancellation later or query the task status.");
         }
     }

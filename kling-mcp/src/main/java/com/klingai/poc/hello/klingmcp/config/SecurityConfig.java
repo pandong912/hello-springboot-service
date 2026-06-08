@@ -1,4 +1,4 @@
-package com.klingai.poc.hello.klingmcp;
+package com.klingai.poc.hello.klingmcp.config;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,14 +9,14 @@ import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.proc.DefaultJOSEObjectTypeVerifier;
 import com.nimbusds.jose.proc.JOSEObjectTypeVerifier;
 import com.nimbusds.jose.proc.SecurityContext;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
@@ -32,16 +32,15 @@ import org.springframework.util.StringUtils;
 
 @Configuration
 @EnableConfigurationProperties(KlingMcpProperties.class)
+@Slf4j
 public class SecurityConfig {
-
-    private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, KlingMcpProperties properties) throws Exception {
         String requiredAuthority = "SCOPE_" + requireText(properties.auth().requiredScope(), "kling.mcp.auth.required-scope");
 
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/actuator/health",
@@ -55,7 +54,7 @@ public class SecurityConfig {
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(Customizer.withDefaults())
                         .authenticationEntryPoint((request, response, authException) -> {
-                            logger.warn("Rejecting unauthenticated MCP request path={}, reason={}",
+                            log.warn("Rejecting unauthenticated MCP request path={}, reason={}",
                                     request.getRequestURI(), authException.getMessage());
                             response.addHeader(HttpHeaders.WWW_AUTHENTICATE,
                                     "Bearer resource_metadata=\"" + properties.protectedResourceMetadataUriForEndpoint() + "\"");
@@ -63,7 +62,7 @@ public class SecurityConfig {
                         }))
                 .exceptionHandling(exceptions -> exceptions
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
-                            logger.warn("Rejecting authenticated MCP request path={}, requiredAuthority={}, reason={}",
+                            log.warn("Rejecting authenticated MCP request path={}, requiredAuthority={}, reason={}",
                                     request.getRequestURI(), requiredAuthority, accessDeniedException.getMessage());
                             response.sendError(HttpServletResponse.SC_FORBIDDEN,
                                     "Forbidden: missing required authority " + requiredAuthority);

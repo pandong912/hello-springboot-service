@@ -1,5 +1,8 @@
 package com.klingai.poc.hello.klingmcp;
 
+import com.klingai.poc.hello.klingmcp.tools.DateTools;
+import com.klingai.poc.hello.klingmcp.tools.KlingVideoTools;
+
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.method.MethodToolCallbackProvider;
 import org.springframework.boot.SpringApplication;

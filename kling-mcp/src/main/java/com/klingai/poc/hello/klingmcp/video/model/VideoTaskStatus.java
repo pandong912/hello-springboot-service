@@ -1,4 +1,4 @@
-package com.klingai.poc.hello.klingmcp;
+package com.klingai.poc.hello.klingmcp.video.model;
 
 import java.util.Locale;
 

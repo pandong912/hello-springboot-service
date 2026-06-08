@@ -1,4 +1,4 @@
-package com.klingai.poc.hello.klingmcp;
+package com.klingai.poc.hello.klingmcp.tools;
 
 import java.time.LocalDate;
 import java.util.Collection;

@@ -1,20 +1,20 @@
-package com.klingai.poc.hello.klingmcp;
+package com.klingai.poc.hello.klingmcp.tools;
+
+import com.klingai.poc.hello.klingmcp.video.model.VideoContracts;
+import com.klingai.poc.hello.klingmcp.video.service.KlingVideoService;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class KlingVideoTools {
 
     private final KlingVideoService videoService;
     private final ObjectMapper objectMapper;
-
-    public KlingVideoTools(KlingVideoService videoService, ObjectMapper objectMapper) {
-        this.videoService = videoService;
-        this.objectMapper = objectMapper;
-    }
 
     @Tool(name = "create_video", description = "Submit an asynchronous Kling video generation task and return a local task id.")
     public String createVideo(VideoContracts.CreateVideoRequest request) {

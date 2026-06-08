@@ -1,5 +1,8 @@
-package com.klingai.poc.hello.klingmcp;
+package com.klingai.poc.hello.klingmcp.video.api;
 
+import lombok.Getter;
+
+@Getter
 public class KlingApiException extends RuntimeException {
 
     private final String code;
@@ -9,13 +12,5 @@ public class KlingApiException extends RuntimeException {
         super(message);
         this.code = code;
         this.retryable = retryable;
-    }
-
-    public String code() {
-        return code;
-    }
-
-    public boolean retryable() {
-        return retryable;
     }
 }

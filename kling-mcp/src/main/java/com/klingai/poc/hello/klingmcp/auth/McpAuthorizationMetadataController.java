@@ -1,19 +1,19 @@
-package com.klingai.poc.hello.klingmcp;
+package com.klingai.poc.hello.klingmcp.auth;
+
+import com.klingai.poc.hello.klingmcp.config.KlingMcpProperties;
 
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequiredArgsConstructor
 public class McpAuthorizationMetadataController {
 
     private final KlingMcpProperties properties;
-
-    public McpAuthorizationMetadataController(KlingMcpProperties properties) {
-        this.properties = properties;
-    }
 
     @GetMapping({
             "/.well-known/oauth-protected-resource",

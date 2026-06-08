@@ -1,4 +1,8 @@
-package com.klingai.poc.hello.klingmcp;
+package com.klingai.poc.hello.klingmcp.video.web;
+
+import com.klingai.poc.hello.klingmcp.config.KlingMcpProperties;
+import com.klingai.poc.hello.klingmcp.video.model.VideoContracts;
+import com.klingai.poc.hello.klingmcp.video.service.KlingVideoService;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -8,6 +12,7 @@ import java.util.HexFormat;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,17 +23,13 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequiredArgsConstructor
 public class KlingCallbackController {
 
     private static final Duration MAX_CLOCK_SKEW = Duration.ofMinutes(5);
 
     private final KlingVideoService videoService;
     private final KlingMcpProperties properties;
-
-    public KlingCallbackController(KlingVideoService videoService, KlingMcpProperties properties) {
-        this.videoService = videoService;
-        this.properties = properties;
-    }
 
     @PostMapping(
             path = "${kling.mcp.api.callback-path:/api/kling/callbacks/video-generation}",

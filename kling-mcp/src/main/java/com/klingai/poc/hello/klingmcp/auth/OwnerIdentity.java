@@ -1,4 +1,4 @@
-package com.klingai.poc.hello.klingmcp;
+package com.klingai.poc.hello.klingmcp.auth;
 
 import java.util.List;
 

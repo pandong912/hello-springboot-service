@@ -1,4 +1,9 @@
-package com.klingai.poc.hello.klingmcp;
+package com.klingai.poc.hello.klingmcp.video.api;
+
+import com.klingai.poc.hello.klingmcp.auth.OwnerIdentity;
+import com.klingai.poc.hello.klingmcp.config.KlingMcpProperties;
+import com.klingai.poc.hello.klingmcp.video.model.VideoContracts;
+import com.klingai.poc.hello.klingmcp.video.model.VideoTaskStatus;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

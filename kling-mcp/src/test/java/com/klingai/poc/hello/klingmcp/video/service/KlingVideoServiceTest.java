@@ -1,4 +1,12 @@
-package com.klingai.poc.hello.klingmcp;
+package com.klingai.poc.hello.klingmcp.video.service;
+
+import com.klingai.poc.hello.klingmcp.auth.OwnerIdentity;
+import com.klingai.poc.hello.klingmcp.config.KlingMcpProperties;
+import com.klingai.poc.hello.klingmcp.video.api.KlingApiClient;
+import com.klingai.poc.hello.klingmcp.video.api.KlingCreateVideoResult;
+import com.klingai.poc.hello.klingmcp.video.model.VideoContracts;
+import com.klingai.poc.hello.klingmcp.video.model.VideoTaskStatus;
+import com.klingai.poc.hello.klingmcp.video.repository.InMemoryVideoTaskRepository;
 
 import java.time.Instant;
 import java.util.List;

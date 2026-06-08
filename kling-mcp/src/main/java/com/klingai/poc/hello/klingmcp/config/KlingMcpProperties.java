@@ -1,4 +1,4 @@
-package com.klingai.poc.hello.klingmcp;
+package com.klingai.poc.hello.klingmcp.config;
 
 import java.util.ArrayList;
 import java.util.List;

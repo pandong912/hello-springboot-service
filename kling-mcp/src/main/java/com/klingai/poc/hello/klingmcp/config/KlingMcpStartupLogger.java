@@ -1,19 +1,17 @@
-package com.klingai.poc.hello.klingmcp;
+package com.klingai.poc.hello.klingmcp.config;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@Slf4j
 public class KlingMcpStartupLogger {
-
-    private static final Logger logger = LoggerFactory.getLogger(KlingMcpStartupLogger.class);
 
     @Bean
     ApplicationRunner logKlingMcpConfiguration(KlingMcpProperties properties) {
-        return args -> logger.info(
+        return args -> log.info(
                 "Kling MCP auth configured: endpoint={}, resource={}, trustedIssuers={}, requiredScope={}, metadata={}",
                 properties.endpointUri(),
                 properties.resourceUri(),
