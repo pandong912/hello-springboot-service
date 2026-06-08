@@ -1,4 +1,4 @@
-package com.klingai.poc.hello.klingmcpauthgateway;
+package com.klingai.poc.hello.klingmcpauthgateway.integration;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

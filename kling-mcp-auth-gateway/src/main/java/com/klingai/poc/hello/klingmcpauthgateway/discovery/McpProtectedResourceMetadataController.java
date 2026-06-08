@@ -1,19 +1,18 @@
-package com.klingai.poc.hello.klingmcpauthgateway;
+package com.klingai.poc.hello.klingmcpauthgateway.discovery;
 
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.klingai.poc.hello.klingmcpauthgateway.config.GatewayProperties;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequiredArgsConstructor
 public class McpProtectedResourceMetadataController {
 
     private final GatewayProperties properties;
-
-    public McpProtectedResourceMetadataController(GatewayProperties properties) {
-        this.properties = properties;
-    }
 
     @GetMapping({
             "/.well-known/oauth-protected-resource",

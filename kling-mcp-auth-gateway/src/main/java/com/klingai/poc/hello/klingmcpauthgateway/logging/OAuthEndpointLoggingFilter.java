@@ -1,4 +1,4 @@
-package com.klingai.poc.hello.klingmcpauthgateway;
+package com.klingai.poc.hello.klingmcpauthgateway.logging;
 
 import java.io.IOException;
 
@@ -6,8 +6,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -15,9 +14,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
+@Slf4j
 public class OAuthEndpointLoggingFilter extends OncePerRequestFilter {
-
-    private static final Logger logger = LoggerFactory.getLogger(OAuthEndpointLoggingFilter.class);
 
     @Override
     protected void doFilterInternal(
@@ -30,7 +28,7 @@ public class OAuthEndpointLoggingFilter extends OncePerRequestFilter {
         }
 
         long startedAt = System.currentTimeMillis();
-        logger.info("OAuth endpoint request: method={}, path={}, query={}, origin={}, contentType={}",
+        log.info("OAuth endpoint request: method={}, path={}, query={}, origin={}, contentType={}",
                 request.getMethod(),
                 request.getRequestURI(),
                 sanitizeQuery(request.getQueryString()),
@@ -40,7 +38,7 @@ public class OAuthEndpointLoggingFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         }
         finally {
-            logger.info("OAuth endpoint response: method={}, path={}, status={}, elapsedMs={}",
+            log.info("OAuth endpoint response: method={}, path={}, status={}, elapsedMs={}",
                     request.getMethod(),
                     request.getRequestURI(),
                     response.getStatus(),

@@ -1,4 +1,4 @@
-package com.klingai.poc.hello.klingmcpauthgateway;
+package com.klingai.poc.hello.klingmcpauthgateway.web;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

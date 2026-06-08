@@ -1,4 +1,4 @@
-package com.klingai.poc.hello.klingmcpauthgateway;
+package com.klingai.poc.hello.klingmcpauthgateway.config;
 
 import java.util.List;
 

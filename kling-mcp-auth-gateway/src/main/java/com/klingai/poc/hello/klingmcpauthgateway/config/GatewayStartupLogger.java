@@ -1,19 +1,17 @@
-package com.klingai.poc.hello.klingmcpauthgateway;
+package com.klingai.poc.hello.klingmcpauthgateway.config;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@Slf4j
 public class GatewayStartupLogger {
-
-    private static final Logger logger = LoggerFactory.getLogger(GatewayStartupLogger.class);
 
     @Bean
     ApplicationRunner logGatewayConfiguration(GatewayProperties properties) {
-        return args -> logger.info(
+        return args -> log.info(
                 "Kling MCP OAuth Gateway configured: issuer={}, mcpResource={}, scopes={}, dcrEnabled={}, registrationEndpoint={}",
                 properties.publicBaseUrl(),
                 properties.mcp().resource(),

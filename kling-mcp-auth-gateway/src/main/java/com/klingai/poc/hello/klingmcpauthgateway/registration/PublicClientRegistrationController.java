@@ -1,16 +1,17 @@
-package com.klingai.poc.hello.klingmcpauthgateway;
+package com.klingai.poc.hello.klingmcpauthgateway.registration;
 
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.klingai.poc.hello.klingmcpauthgateway.config.GatewayProperties;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
@@ -25,24 +26,17 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
+@RequiredArgsConstructor
+@Slf4j
 public class PublicClientRegistrationController {
-
-    private static final Logger logger = LoggerFactory.getLogger(PublicClientRegistrationController.class);
 
     private final GatewayProperties properties;
     private final InMemoryRegisteredClientRepository registeredClientRepository;
 
-    public PublicClientRegistrationController(
-            GatewayProperties properties,
-            InMemoryRegisteredClientRepository registeredClientRepository) {
-        this.properties = properties;
-        this.registeredClientRepository = registeredClientRepository;
-    }
-
     @PostMapping({"/oauth/register", "/connect/register"})
     @ResponseStatus(HttpStatus.CREATED)
     RegistrationResponse registerClient(@Valid @RequestBody RegistrationRequest request) {
-        logger.info("Handling public client registration: clientName={}, requestedClientId={}, redirectUris={}, scope={}",
+        log.info("Handling public client registration: clientName={}, requestedClientId={}, redirectUris={}, scope={}",
                 request.clientName(), request.clientId(), request.redirectUris(), request.scope());
         if (!properties.registration().enabled()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Dynamic client registration is disabled");
@@ -68,7 +62,7 @@ public class PublicClientRegistrationController {
                         .build())
                 .build();
         registeredClientRepository.save(registeredClient);
-        logger.info("Registered public PKCE client: clientId={}, redirectUris={}, scopes={}",
+        log.info("Registered public PKCE client: clientId={}, redirectUris={}, scopes={}",
                 clientId, redirectUris, scopes);
 
         return new RegistrationResponse(
