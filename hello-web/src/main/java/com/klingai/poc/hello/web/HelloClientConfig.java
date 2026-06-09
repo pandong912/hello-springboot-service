@@ -1,14 +1,16 @@
 package com.klingai.poc.hello.web;
 
-import com.klingai.poc.hello.dubbo.HelloDubboService;
-import com.klingai.poc.hello.grpc.HelloRpcGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+
 import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.config.bootstrap.DubboBootstrap;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import com.klingai.poc.hello.dubbo.HelloDubboService;
+import com.klingai.poc.hello.grpc.HelloRpcGrpc;
 
 @Configuration
 @EnableConfigurationProperties(HelloWebProperties.class)

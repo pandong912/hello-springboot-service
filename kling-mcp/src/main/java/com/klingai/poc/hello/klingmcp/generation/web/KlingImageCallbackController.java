@@ -1,0 +1,96 @@
+package com.klingai.poc.hello.klingmcp.generation.web;
+
+import lombok.RequiredArgsConstructor;
+
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.HexFormat;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.klingai.poc.hello.klingmcp.config.KlingMcpProperties;
+import com.klingai.poc.hello.klingmcp.generation.model.ImageContracts;
+import com.klingai.poc.hello.klingmcp.generation.service.KlingImageService;
+
+@RestController
+@RequiredArgsConstructor
+public class KlingImageCallbackController {
+
+    private static final Duration MAX_CLOCK_SKEW = Duration.ofMinutes(5);
+
+    private final KlingImageService imageService;
+    private final KlingMcpProperties properties;
+
+    @PostMapping(
+            path = "${kling.mcp.api.image-callback-path:/api/kling/callbacks/image-generation}",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<ImageContracts.CallbackResponse> receiveImageGenerationCallback(
+            @RequestBody String rawPayload,
+            @RequestHeader(name = "${kling.mcp.api.callback-signature-header:X-Kling-Signature}", required = false) String signature,
+            @RequestHeader(name = "${kling.mcp.api.callback-timestamp-header:X-Kling-Timestamp}", required = false) String timestamp) {
+        if (!isValidSignature(rawPayload, signature, timestamp)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ImageContracts.CallbackResponse(false, null, null, null, "Invalid callback signature."));
+        }
+        try {
+            ImageContracts.CallbackResponse response = imageService.applyCallback(rawPayload);
+            if (!response.ok()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+            return ResponseEntity.ok(response);
+        }
+        catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest()
+                    .body(new ImageContracts.CallbackResponse(false, null, null, null, ex.getMessage()));
+        }
+    }
+
+    private boolean isValidSignature(String rawPayload, String signature, String timestamp) {
+        String secret = properties.api().callbackSecret();
+        if (!StringUtils.hasText(secret) || !StringUtils.hasText(signature) || !StringUtils.hasText(timestamp)) {
+            return false;
+        }
+        if (!isFresh(timestamp)) {
+            return false;
+        }
+        String expected = hmacSha256(secret, timestamp + "." + rawPayload);
+        String normalizedSignature = signature.startsWith("sha256=") ? signature.substring("sha256=".length()) : signature;
+        return java.security.MessageDigest.isEqual(
+                expected.getBytes(StandardCharsets.UTF_8),
+                normalizedSignature.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static boolean isFresh(String timestamp) {
+        try {
+            Instant callbackTime = Instant.ofEpochSecond(Long.parseLong(timestamp));
+            Duration age = Duration.between(callbackTime, Instant.now()).abs();
+            return age.compareTo(MAX_CLOCK_SKEW) <= 0;
+        }
+        catch (NumberFormatException ex) {
+            return false;
+        }
+    }
+
+    private static String hmacSha256(String secret, String value) {
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            return HexFormat.of().formatHex(mac.doFinal(value.getBytes(StandardCharsets.UTF_8)));
+        }
+        catch (java.security.GeneralSecurityException ex) {
+            throw new IllegalStateException("HmacSHA256 is not available", ex);
+        }
+    }
+}

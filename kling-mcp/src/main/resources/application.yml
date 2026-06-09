@@ -1,0 +1,80 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: kling-mcp
+  datasource:
+    url: ${KLING_MCP_DATASOURCE_URL:jdbc:postgresql://localhost:5432/kling_mcp}
+    username: ${KLING_MCP_DATASOURCE_USERNAME:}
+    password: ${KLING_MCP_DATASOURCE_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+  ai:
+    mcp:
+      server:
+        name: kling-mcp
+        version: 0.1.0-SNAPSHOT
+        type: SYNC
+        protocol: STREAMABLE
+        instructions: "Kling MCP server. Currently exposes a tool for retrieving the current date."
+        capabilities:
+          tool: true
+          resource: false
+          prompt: false
+          completion: false
+        streamable-http:
+          mcp-endpoint: ${KLING_MCP_ENDPOINT:/mcp}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+kling:
+  mcp:
+    public-base-url: ${KLING_MCP_PUBLIC_BASE_URL:http://localhost:8081}
+    endpoint: ${KLING_MCP_ENDPOINT:/mcp}
+    debug-api:
+      enabled: ${KLING_MCP_DEBUG_API_ENABLED:true}
+    repository:
+      type: ${KLING_MCP_REPOSITORY_TYPE:postgres}
+    auth:
+      issuer-uri: ${LOGTO_ISSUER_URI:https://107k1z.logto.app/oidc}
+      jwk-set-uri: ${LOGTO_JWK_SET_URI:}
+      audience: ${LOGTO_AUDIENCE:http://localhost:8081/mcp}
+      required-scope: ${KLING_MCP_REQUIRED_SCOPE:kling:invoke}
+      trusted-issuers:
+        - issuer-uri: ${KLING_MCP_GATEWAY_ISSUER:http://localhost:8082}
+          jwk-set-uri: ${KLING_MCP_GATEWAY_JWK_SET_URI:http://localhost:8082/.well-known/jwks.json}
+        - issuer-uri: ${LOGTO_ISSUER_URI:https://107k1z.logto.app/oidc}
+          jwk-set-uri: ${LOGTO_JWK_SET_URI:}
+    api:
+      base-url: ${KLING_API_BASE_URL:https://api-beijing.klingai.com}
+      access-key: ${KLING_API_ACCESS_KEY:}
+      secret-key: ${KLING_API_SECRET_KEY:}
+      create-video-path: ${KLING_API_CREATE_VIDEO_PATH:/v1/videos/generations}
+      cancel-video-path: ${KLING_API_CANCEL_VIDEO_PATH:/v1/videos/generations/{providerTaskId}/cancel}
+      callback-path: ${KLING_API_CALLBACK_PATH:/api/kling/callbacks/video-generation}
+      create-image-path: ${KLING_API_CREATE_IMAGE_PATH:/v1/images/omni-image}
+      query-image-path: ${KLING_API_QUERY_IMAGE_PATH:/v1/images/omni-image/{providerTaskId}}
+      cancel-image-path: ${KLING_API_CANCEL_IMAGE_PATH:/v1/images/generations/{providerTaskId}/cancel}
+      image-callback-path: ${KLING_API_IMAGE_CALLBACK_PATH:/api/kling/callbacks/image-generation}
+      callback-secret: ${KLING_API_CALLBACK_SECRET:dev-callback-secret}
+      callback-signature-header: ${KLING_API_CALLBACK_SIGNATURE_HEADER:X-Kling-Signature}
+      callback-timestamp-header: ${KLING_API_CALLBACK_TIMESTAMP_HEADER:X-Kling-Timestamp}
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true

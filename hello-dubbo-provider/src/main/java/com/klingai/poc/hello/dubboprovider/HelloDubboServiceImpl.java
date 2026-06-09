@@ -1,7 +1,8 @@
 package com.klingai.poc.hello.dubboprovider;
 
-import com.klingai.poc.hello.dubbo.HelloDubboService;
 import org.apache.dubbo.config.annotation.DubboService;
+
+import com.klingai.poc.hello.dubbo.HelloDubboService;
 
 @DubboService
 public class HelloDubboServiceImpl implements HelloDubboService {
