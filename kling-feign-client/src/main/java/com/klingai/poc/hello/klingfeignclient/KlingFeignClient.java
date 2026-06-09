@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-@FeignClient(name = "klingApi", url = "${kling.mcp.api.base-url:http://localhost:8089}")
+@FeignClient(name = "klingApi", url = "${kling.mcp.api.base-url:https://api-beijing.klingai.com}")
 public interface KlingFeignClient {
 
     @PostMapping(path = "${kling.mcp.api.create-video-path}", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -27,7 +28,12 @@ public interface KlingFeignClient {
     @PostMapping(path = "${kling.mcp.api.create-image-path}", consumes = MediaType.APPLICATION_JSON_VALUE)
     JsonNode createImage(
             @RequestHeader Map<String, String> headers,
-            @RequestBody Map<String, Object> payload);
+            @RequestBody KlingImageRequest klingImageRequest);
+
+    @GetMapping(path = "${kling.mcp.api.query-image-path:/v1/images/omni-image/{providerTaskId}}")
+    JsonNode getImageTask(
+            @RequestHeader Map<String, String> headers,
+            @PathVariable("providerTaskId") String providerTaskId);
 
     @PostMapping(path = "${kling.mcp.api.cancel-image-path}")
     void cancelImage(

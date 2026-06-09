@@ -6,8 +6,8 @@ spring:
     name: kling-mcp
   datasource:
     url: ${KLING_MCP_DATASOURCE_URL:jdbc:postgresql://localhost:5432/kling_mcp}
-    username: ${KLING_MCP_DATASOURCE_USERNAME:kling_mcp}
-    password: ${KLING_MCP_DATASOURCE_PASSWORD:kling_mcp}
+    username: ${KLING_MCP_DATASOURCE_USERNAME:}
+    password: ${KLING_MCP_DATASOURCE_PASSWORD:}
     driver-class-name: org.postgresql.Driver
   ai:
     mcp:
@@ -25,6 +25,13 @@ spring:
         streamable-http:
           mcp-endpoint: ${KLING_MCP_ENDPOINT:/mcp}
 
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+
 management:
   endpoint:
     health:
@@ -39,6 +46,8 @@ kling:
   mcp:
     public-base-url: ${KLING_MCP_PUBLIC_BASE_URL:http://localhost:8081}
     endpoint: ${KLING_MCP_ENDPOINT:/mcp}
+    debug-api:
+      enabled: ${KLING_MCP_DEBUG_API_ENABLED:true}
     repository:
       type: ${KLING_MCP_REPOSITORY_TYPE:postgres}
     auth:
@@ -52,13 +61,14 @@ kling:
         - issuer-uri: ${LOGTO_ISSUER_URI:https://107k1z.logto.app/oidc}
           jwk-set-uri: ${LOGTO_JWK_SET_URI:}
     api:
-      base-url: ${KLING_API_BASE_URL:http://localhost:8089}
-      access-key: ${KLING_API_ACCESS_KEY:APbCkayK4hyMKgn4dkAkDrPYTh3ENPra}
-      secret-key: ${KLING_API_SECRET_KEY:mbkYH8eYMfPhmN3KHyeyFdetDCaRaEy3}
+      base-url: ${KLING_API_BASE_URL:https://api-beijing.klingai.com}
+      access-key: ${KLING_API_ACCESS_KEY:}
+      secret-key: ${KLING_API_SECRET_KEY:}
       create-video-path: ${KLING_API_CREATE_VIDEO_PATH:/v1/videos/generations}
       cancel-video-path: ${KLING_API_CANCEL_VIDEO_PATH:/v1/videos/generations/{providerTaskId}/cancel}
       callback-path: ${KLING_API_CALLBACK_PATH:/api/kling/callbacks/video-generation}
-      create-image-path: ${KLING_API_CREATE_IMAGE_PATH:/v1/images/generations}
+      create-image-path: ${KLING_API_CREATE_IMAGE_PATH:/v1/images/omni-image}
+      query-image-path: ${KLING_API_QUERY_IMAGE_PATH:/v1/images/omni-image/{providerTaskId}}
       cancel-image-path: ${KLING_API_CANCEL_IMAGE_PATH:/v1/images/generations/{providerTaskId}/cancel}
       image-callback-path: ${KLING_API_IMAGE_CALLBACK_PATH:/api/kling/callbacks/image-generation}
       callback-secret: ${KLING_API_CALLBACK_SECRET:dev-callback-secret}

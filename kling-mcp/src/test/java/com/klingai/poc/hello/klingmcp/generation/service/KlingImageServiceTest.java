@@ -23,6 +23,7 @@ import com.klingai.poc.hello.klingmcp.config.KlingMcpProperties;
 import com.klingai.poc.hello.klingmcp.generation.api.KlingApiClient;
 import com.klingai.poc.hello.klingmcp.generation.api.KlingCreateImageResult;
 import com.klingai.poc.hello.klingmcp.generation.api.KlingCreateVideoResult;
+import com.klingai.poc.hello.klingmcp.generation.api.KlingImageTaskResult;
 import com.klingai.poc.hello.klingmcp.generation.model.ImageContracts;
 import com.klingai.poc.hello.klingmcp.generation.model.ImageTask;
 import com.klingai.poc.hello.klingmcp.generation.model.GenerationTaskStatus;
@@ -136,6 +137,58 @@ class KlingImageServiceTest {
         assertThat(fetched.result().imageUrls()).containsExactly("https://cdn.example.com/image.png");
     }
 
+    @Test
+    void getImageTaskByProviderTaskIdSyncsProviderResultToRepository() {
+        authenticate("user-1");
+        ImageContracts.ImageTaskResponse created = service.createImage(new ImageContracts.CreateImageRequest(
+                "a watercolor cat",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null));
+        imageApiClient.completeImageTask("https://cdn.example.com/provider-image.png");
+
+        ImageContracts.ImageTaskResponse synced = service.getImageTaskByProviderTaskId(
+                new ImageContracts.GetProviderImageTaskRequest(created.providerTaskId()));
+
+        assertThat(synced.ok()).isTrue();
+        assertThat(synced.status()).isEqualTo(GenerationTaskStatus.SUCCEEDED);
+        assertThat(synced.result().imageUrls()).containsExactly("https://cdn.example.com/provider-image.png");
+
+        ImageContracts.ImageTaskResponse fetched = service.getImageTask(
+                new ImageContracts.GetImageTaskRequest(created.taskId()));
+        assertThat(fetched.status()).isEqualTo(GenerationTaskStatus.SUCCEEDED);
+        assertThat(fetched.result().imageUrls()).containsExactly("https://cdn.example.com/provider-image.png");
+    }
+
+    @Test
+    void waitForImageTaskPollsProviderStatusWithoutCallback() {
+        authenticate("user-1");
+        ImageContracts.ImageTaskResponse created = service.createImage(new ImageContracts.CreateImageRequest(
+                "a sunny forest",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null));
+        imageApiClient.completeImageTask("https://cdn.example.com/waited-image.png");
+
+        ImageContracts.ImageTaskResponse waited = service.waitForImageTask(
+                new ImageContracts.WaitImageTaskRequest(created.taskId(), 1));
+
+        assertThat(waited.ok()).isTrue();
+        assertThat(waited.status()).isEqualTo(GenerationTaskStatus.SUCCEEDED);
+        assertThat(waited.result().imageUrls()).containsExactly("https://cdn.example.com/waited-image.png");
+        assertThat(imageApiClient.imageTaskQueryCount).isEqualTo(1);
+    }
+
     private static void authenticate(String subject) {
         Jwt jwt = Jwt.withTokenValue("token-" + subject)
                 .header("alg", "RS256")
@@ -183,6 +236,15 @@ class KlingImageServiceTest {
 
     private static class FakeKlingApiClient implements KlingApiClient {
 
+        private KlingImageTaskResult imageTaskResult = new KlingImageTaskResult(
+                "provider-image-1",
+                GenerationTaskStatus.SUBMITTED,
+                0,
+                null,
+                null,
+                Map.of());
+        private int imageTaskQueryCount;
+
         @Override
         public KlingCreateVideoResult createVideo(
                 String localTaskId,
@@ -207,8 +269,24 @@ class KlingImageServiceTest {
         }
 
         @Override
+        public KlingImageTaskResult getImageTask(String providerTaskId) {
+            imageTaskQueryCount++;
+            return imageTaskResult;
+        }
+
+        @Override
         public boolean cancelImage(String providerTaskId) {
             return true;
+        }
+
+        private void completeImageTask(String imageUrl) {
+            imageTaskResult = new KlingImageTaskResult(
+                    "provider-image-1",
+                    GenerationTaskStatus.SUCCEEDED,
+                    100,
+                    new ImageContracts.ImageResult(List.of(imageUrl), null, Map.of("imageUrls", List.of(imageUrl))),
+                    null,
+                    Map.of());
         }
     }
 

@@ -56,6 +56,15 @@ public record ImageTask(
             ImageContracts.ImageResult newResult,
             ImageContracts.ImageTaskError newError,
             Instant now) {
+        return withProviderUpdate(newStatus, newProgress, newResult, newError, now);
+    }
+
+    public ImageTask withProviderUpdate(
+            GenerationTaskStatus newStatus,
+            Integer newProgress,
+            ImageContracts.ImageResult newResult,
+            ImageContracts.ImageTaskError newError,
+            Instant now) {
         if (status.isTerminal() && !status.equals(newStatus)) {
             return this;
         }

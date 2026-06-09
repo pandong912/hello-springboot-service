@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HexFormat;
@@ -27,6 +28,7 @@ import com.klingai.poc.hello.klingmcp.config.KlingMcpProperties;
 import com.klingai.poc.hello.klingmcp.generation.api.KlingApiClient;
 import com.klingai.poc.hello.klingmcp.generation.api.KlingApiException;
 import com.klingai.poc.hello.klingmcp.generation.api.KlingCreateImageResult;
+import com.klingai.poc.hello.klingmcp.generation.api.KlingImageTaskResult;
 import com.klingai.poc.hello.klingmcp.generation.model.ImageContracts;
 import com.klingai.poc.hello.klingmcp.generation.model.ImageTask;
 import com.klingai.poc.hello.klingmcp.generation.model.GenerationTaskStatus;
@@ -38,6 +40,7 @@ public class KlingImageService {
 
     private static final int DEFAULT_WAIT_SECONDS = 30;
     private static final int MAX_WAIT_SECONDS = 60;
+    private static final int POLL_INTERVAL_SECONDS = 5;
     private static final int DEFAULT_LIST_LIMIT = 20;
 
     private final ImageTaskRepository repository;
@@ -91,7 +94,25 @@ public class KlingImageService {
         }
         return visibleTask(request == null ? null : request.taskId(), owner)
                 .map(task -> ImageContracts.ImageTaskResponse.fromTask(task, nextActionFor(task)))
-                .orElseGet(() -> taskNotFoundResponse());
+                .orElseGet(KlingImageService::taskNotFoundResponse);
+    }
+
+    public ImageContracts.ImageTaskResponse getImageTaskByProviderTaskId(ImageContracts.GetProviderImageTaskRequest request) {
+        OwnerIdentity owner = currentOwner();
+        if (owner == null) {
+            return unauthenticatedResponse();
+        }
+        ImageTask task = visibleTaskByProviderTaskId(request == null ? null : request.providerTaskId(), owner).orElse(null);
+        if (task == null) {
+            return taskNotFoundResponse();
+        }
+        try {
+            ImageTask updatedTask = refreshImageTaskFromProvider(task);
+            return ImageContracts.ImageTaskResponse.fromTask(updatedTask, nextActionFor(updatedTask));
+        }
+        catch (KlingApiException ex) {
+            return providerQueryFailedResponse(task, ex);
+        }
     }
 
     public ImageContracts.ListImageTasksResponse listImageTasks(ImageContracts.ListImageTasksRequest request) {
@@ -128,11 +149,25 @@ public class KlingImageService {
         if (task == null) {
             return taskNotFoundResponse();
         }
+        try {
+            task = refreshImageTaskFromProvider(task);
+        }
+        catch (KlingApiException ex) {
+            return providerQueryFailedResponse(task, ex);
+        }
         while (!task.status().isTerminal() && Instant.now().isBefore(deadline)) {
-            sleepOneSecond();
+            if (!sleepUntilNextPoll(deadline)) {
+                break;
+            }
             task = visibleTask(request.taskId(), owner).orElse(null);
             if (task == null) {
                 return taskNotFoundResponse();
+            }
+            try {
+                task = refreshImageTaskFromProvider(task);
+            }
+            catch (KlingApiException ex) {
+                return providerQueryFailedResponse(task, ex);
             }
         }
 
@@ -208,6 +243,26 @@ public class KlingImageService {
                 .filter(task -> owner.canManageAllTasks() || task.ownerSubject().equals(owner.subject()));
     }
 
+    private java.util.Optional<ImageTask> visibleTaskByProviderTaskId(String providerTaskId, OwnerIdentity owner) {
+        return repository.findByProviderTaskId(providerTaskId)
+                .filter(task -> owner.canManageAllTasks() || task.ownerSubject().equals(owner.subject()));
+    }
+
+    private ImageTask refreshImageTaskFromProvider(ImageTask task) {
+        if (!StringUtils.hasText(task.providerTaskId())) {
+            return task;
+        }
+        KlingImageTaskResult providerTask = klingApiClient.getImageTask(task.providerTaskId());
+        GenerationTaskStatus providerStatus = providerTask.status() == null ? task.status() : providerTask.status();
+        ImageTask updatedTask = task.withProviderUpdate(
+                providerStatus,
+                providerTask.progress(),
+                providerTask.result(),
+                providerTask.error(),
+                Instant.now());
+        return repository.save(updatedTask);
+    }
+
     private ImageTask findTaskForCallback(CallbackEvent event) {
         if (StringUtils.hasText(event.localTaskId())) {
             ImageTask task = repository.findByTaskId(event.localTaskId()).orElse(null);
@@ -223,12 +278,12 @@ public class KlingImageService {
             JsonNode root = objectMapper.readTree(rawPayload);
             JsonNode data = root.path("data").isMissingNode() ? root : root.path("data");
             String providerTaskId = firstText(data, "providerTaskId", "provider_task_id", "taskId", "task_id", "id");
-            String localTaskId = firstText(data, "localTaskId", "local_task_id");
+            String localTaskId = firstText(data, "localTaskId", "local_task_id", "externalTaskId", "external_task_id");
             if (!StringUtils.hasText(localTaskId)) {
-                localTaskId = firstText(data.path("metadata"), "localTaskId", "local_task_id");
+                localTaskId = firstText(data.path("metadata"), "localTaskId", "local_task_id", "externalTaskId", "external_task_id");
             }
             String eventId = firstText(root, "eventId", "event_id", "id");
-            String statusText = firstText(data, "status", "state");
+            String statusText = firstText(data, "status", "state", "taskStatus", "task_status");
             GenerationTaskStatus status = GenerationTaskStatus.fromProviderStatus(statusText);
             Integer progress = firstInteger(data, "progress", "percent");
             ImageContracts.ImageResult result = parseResult(data);
@@ -317,6 +372,20 @@ public class KlingImageService {
                 "Check the taskId and ensure it belongs to the current user.");
     }
 
+    private static ImageContracts.ImageTaskResponse providerQueryFailedResponse(ImageTask task, KlingApiException ex) {
+        return new ImageContracts.ImageTaskResponse(
+                false,
+                task.taskId(),
+                task.providerTaskId(),
+                task.status(),
+                task.createdAt(),
+                task.updatedAt(),
+                task.progress(),
+                task.result(),
+                new ImageContracts.ImageTaskError(ex.getCode(), ex.getMessage(), ex.isRetryable()),
+                "Retry querying the Kling image task later.");
+    }
+
     private static String nextActionFor(ImageTask task) {
         return switch (task.status()) {
             case SUBMITTED, RUNNING -> "Call get_image_task or wait_for_image_task later.";
@@ -326,12 +395,19 @@ public class KlingImageService {
         };
     }
 
-    private static void sleepOneSecond() {
+    private static boolean sleepUntilNextPoll(Instant deadline) {
+        long secondsUntilDeadline = Duration.between(Instant.now(), deadline).toSeconds();
+        long sleepSeconds = Math.min(POLL_INTERVAL_SECONDS, secondsUntilDeadline);
+        if (sleepSeconds <= 0) {
+            return false;
+        }
         try {
-            Thread.sleep(1_000);
+            Thread.sleep(Duration.ofSeconds(sleepSeconds).toMillis());
+            return true;
         }
         catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
+            return false;
         }
     }
 

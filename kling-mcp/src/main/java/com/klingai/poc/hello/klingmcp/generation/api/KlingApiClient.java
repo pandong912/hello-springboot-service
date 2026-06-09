@@ -20,5 +20,7 @@ public interface KlingApiClient {
             OwnerIdentity owner,
             String callbackUrl);
 
+    KlingImageTaskResult getImageTask(String providerTaskId);
+
     boolean cancelImage(String providerTaskId);
 }

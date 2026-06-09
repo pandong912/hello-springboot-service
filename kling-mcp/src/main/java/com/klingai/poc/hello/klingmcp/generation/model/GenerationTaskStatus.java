@@ -21,7 +21,7 @@ public enum GenerationTaskStatus {
         return switch (value.trim().toLowerCase(Locale.ROOT)) {
             case "submitted", "created", "pending", "queued" -> SUBMITTED;
             case "running", "processing", "in_progress", "generating" -> RUNNING;
-            case "succeeded", "success", "completed", "complete", "done" -> SUCCEEDED;
+            case "succeed", "succeeded", "success", "completed", "complete", "done" -> SUCCEEDED;
             case "failed", "failure", "error" -> FAILED;
             case "cancelled", "canceled" -> CANCELLED;
             case "expired" -> EXPIRED;

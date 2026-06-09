@@ -23,6 +23,7 @@ import com.klingai.poc.hello.klingmcp.config.KlingMcpProperties;
 import com.klingai.poc.hello.klingmcp.generation.api.KlingApiClient;
 import com.klingai.poc.hello.klingmcp.generation.api.KlingCreateImageResult;
 import com.klingai.poc.hello.klingmcp.generation.api.KlingCreateVideoResult;
+import com.klingai.poc.hello.klingmcp.generation.api.KlingImageTaskResult;
 import com.klingai.poc.hello.klingmcp.generation.model.ImageContracts;
 import com.klingai.poc.hello.klingmcp.generation.model.VideoContracts;
 import com.klingai.poc.hello.klingmcp.generation.model.VideoTask;
@@ -203,6 +204,11 @@ class KlingVideoServiceTest {
                 OwnerIdentity owner,
                 String callbackUrl) {
             throw new UnsupportedOperationException("Image generation is not used by video service tests.");
+        }
+
+        @Override
+        public KlingImageTaskResult getImageTask(String providerTaskId) {
+            throw new UnsupportedOperationException("Image task query is not used by video service tests.");
         }
 
         @Override

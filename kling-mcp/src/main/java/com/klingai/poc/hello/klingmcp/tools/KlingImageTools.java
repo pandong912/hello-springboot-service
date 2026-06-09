@@ -27,6 +27,11 @@ public class KlingImageTools {
         return toJson(imageService.getImageTask(request));
     }
 
+    @Tool(name = "get_image_task_by_provider_task_id", description = "Query Kling by provider task id, sync the image task status, and persist successful results.")
+    public String getImageTaskByProviderTaskId(ImageContracts.GetProviderImageTaskRequest request) {
+        return toJson(imageService.getImageTaskByProviderTaskId(request));
+    }
+
     @Tool(name = "list_image_tasks", description = "List recent Kling image generation tasks owned by the current authenticated user.")
     public String listImageTasks(ImageContracts.ListImageTasksRequest request) {
         return toJson(imageService.listImageTasks(request));

@@ -46,6 +46,11 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/actuator/health",
                                 "/actuator/health/**",
+                                "/api/kling/debug/**",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs",
+                                "/v3/api-docs/**",
                                 "/.well-known/oauth-protected-resource",
                                 "/.well-known/oauth-protected-resource/**",
                                 properties.api().callbackPath(),

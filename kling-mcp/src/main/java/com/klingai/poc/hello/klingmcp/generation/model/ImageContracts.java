@@ -24,6 +24,9 @@ public final class ImageContracts {
     public record GetImageTaskRequest(String taskId) {
     }
 
+    public record GetProviderImageTaskRequest(String providerTaskId) {
+    }
+
     public record WaitImageTaskRequest(String taskId, Integer timeoutSeconds) {
     }
 
